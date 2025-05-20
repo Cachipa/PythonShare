@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Botões fixos no topo com título -->
+        <div class="top-buttons">
+            <button class="back-button" onclick="window.location.href='{{ url_for('main') }}'">Voltar</button>
+            <h1>Formulário</h1>
+            {% if not item or item['Status'] != 'Aprovado' %}
+            <button class="submit-button" form="formulario" type="submit">Enviar</button>
+            {% endif %}
+        </div>
+
+        <form id="formulario" method="POST">
+            <div class="row">
+                <div class="field">
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="Edição" {% if item and item['Status'] == 'Edição' %}selected{% endif %}>Edição</option>
+                        <option value="Aprovado" {% if item and item['Status'] == 'Aprovado' %}selected{% endif %}>Aprovado</option>
+                        <option value="Invalidado" {% if item and item['Status'] == 'Invalidado' %}selected{% endif %}>Invalidado</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="numero_sei">Número SEI:</label>
+                    <input type="text" id="numero_sei" name="numero_sei" value="{{ item['Numero SEI'] if item else '' }}" required>
+                </div>
+            </div>
+            <h3>1. IDENTIFICAÇÃO DO RESPONSÁVEL PELA INTERVENÇÃO AMBIENTAL</h3>
+            <div class="row">
+                <div class="field">
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" name="nome" value="{{ item['Nome'] if item else '' }}" required>
+                </div>
+                <div class="field">
+                    <label for="endereco">Endereço:</label>
+                    <input type="text" id="endereco" name="endereco" value="{{ item['Endereço'] if item else '' }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="cpf_cnpj">CPF/CNPJ:</label>
+                    <input type="text" id="cpf_cnpj" name="cpf_cnpj" value="{{ item['CPF/CNPJ'] if item else '' }}" required>
+                </div>
+                <div class="field">
+                    <label for="endereco_numero">Endereço Número:</label>
+                    <input type="text" id="endereco_numero" name="endereco_numero" value="{{ item['Endereço Numero'] if item else '' }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="bairro">Bairro:</label>
+                    <input type="text" id="bairro" name="bairro" value="{{ item['Bairro'] if item else '' }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="uf">UF:</label>
+                    <input type="text" id="uf" name="uf" value="{{ item['UF'] if item else '' }}" required>
+                </div>
+                <div class="field">
+                    <label for="cep">CEP:</label>
+                    <input type="text" id="cep" name="cep" value="{{ item['CEP'] if item else '' }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="field">
+                    <label for="telefone">Telefone:</label>
+                    <input type="text" id="telefone" name="telefone" value="{{ item['Telefone'] if item else '' }}" required>
+                </div>
+            </div>
+            <h3>2. IDENTIFICAÇÃO DO PROPRIETÁRIO DO IMÓVEL</h3>
+        </form>
+    </div>
+</body>
+</html>

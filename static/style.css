@@ -1,0 +1,263 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+/* Botões fixos no topo com título */
+.top-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    padding: 10px 20px;
+    padding-right: 80px; /* Adiciona espaço para evitar que o botão "Enviar" seja coberto */
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.top-buttons h1 {
+    color: white;
+    font-size: 20px;
+    margin: 0;
+    text-align: center;
+    flex: 1;
+}
+
+.back-button, .submit-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px; /* Ajusta apenas a largura */
+    border-radius: 5px;
+    cursor: pointer;
+    width: 150px; /* Define uma largura fixa para os botões */
+    text-align: center;
+}
+
+.back-button:hover, .submit-button:hover {
+    background-color: #45a049;
+}
+
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #333;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-top: 80px; /* Adiciona espaço para os botões fixos */
+}
+
+h1 {
+    text-align: center;
+    color: #4CAF50;
+}
+
+h3 {
+    text-align: left;
+    color: #4CAF50;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    margin-top: 10px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+button {
+    margin: 0 10px;
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+li.error {
+    background-color: #f44336;
+    color: white;
+}
+
+li.success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #444;
+    color: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #555;
+}
+
+table th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+table tr:hover {
+    background-color: #555;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.field {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.field:last-child {
+    margin-right: 0;
+}
+
+.full-width {
+    flex: 100%;
+}
+
+textarea {
+    resize: none;
+    height: 80px; /* Dobro da altura padrão */
+}
+
+/* General input and textarea styles for the form page */
+.container form input, 
+.container form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+/* Style for the dropdown */
+select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 5px;
+    background-color: white;
+    color: black;
+}
+
+/* Specific styles for the login page */
+.container.login-container input {
+    width: auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
+/* Login container styles */
+.login-container {
+    max-width: 400px; /* Restrict the width of the login form */
+    margin: 50px auto; /* Center the form horizontally and add vertical spacing */
+    padding: 20px;
+    background-color: #333; /* Dark background for contrast */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    color: white; /* Ensure text is visible on dark background */
+}
+
+.login-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #4CAF50; /* Green color for the title */
+}
+
+.login-container form {
+    display: flex;
+    flex-direction: column; /* Stack the form elements vertically */
+}
+
+.login-container label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.login-container input {
+    padding: 10px;
+    margin-bottom: 15px; /* Add spacing between input fields */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.login-container button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px; /* Add spacing above the button */
+}
+
+.login-container button:hover {
+    background-color: #45a049;
+}
+
+#BotaoFiltro {
+    padding-top: 28px; /* Ajuste o valor conforme necessário */
+}
