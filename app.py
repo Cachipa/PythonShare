@@ -68,7 +68,6 @@ def form():
     if request.method == "POST":
         # Get form data
         form_data = {
-            'ID': item_id,
             'Status': request.form.get("status"),
             'Numero SEI': request.form.get("numero_sei"),
             'Nome': request.form.get("nome"),
