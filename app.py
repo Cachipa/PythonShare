@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, send_file
 from shareplum import Site
 from shareplum import Office365
 from docx import Document
+from io import BytesIO
 import os
 
 app = Flask(__name__)
@@ -160,21 +161,23 @@ def download(item_id):
         # Fetch the item data
         item = sp_list.GetListItems(
             fields=['Nome', 'Endereço', 'Telefone'],
-            query={'Where': [('Eq', 'ID', item_id)]}  # Use o filtro correto para o campo ID
+            query={'Where': [('Eq', 'ID', item_id)]}
         )
         if not item:
+            print("DEBUG: Item não encontrado!")
             flash("Item não encontrado!", "error")
             return redirect(url_for("main"))
 
-        item = item[0]  # Get the first (and only) item
+        item = item[0]
 
         # Load the Word template
-        template_path = os.path.join("Site-1","2Modelo Parecer (Fabio) 2.docx")
+        template_path = os.path.join(os.path.dirname(__file__), "2Modelo Parecer (Fabio) 2.docx")
         if not os.path.exists(template_path):
+            print(f"DEBUG: Template não encontrado em {template_path}")
             flash("Template Word não encontrado!", "error")
             return redirect(url_for("main"))
-        print(f"Caminho do template Word: {template_path}")
-        doc = Document(template_path)
+
+        print(f"DEBUG: Template encontrado em {template_path}")
 
         # Função para substituir texto em parágrafos e células de tabelas
         def replace_text_in_paragraphs(paragraphs, replacements):
@@ -197,6 +200,9 @@ def download(item_id):
             "{{Telefone}}": item.get("Telefone", "")
         }
 
+        # Carregar o template Word em um objeto Document
+        doc = Document(template_path)
+
         # Substituir texto nos parágrafos do corpo do documento
         replace_text_in_paragraphs(doc.paragraphs, replacements)
 
@@ -208,30 +214,24 @@ def download(item_id):
             replace_text_in_paragraphs(section.header.paragraphs, replacements)
             replace_text_in_paragraphs(section.footer.paragraphs, replacements)
 
-        # Save the filled document to a temporary file
-        output_directory = os.path.abspath("Site-1/downloads")
-        output_filename = f"output_{item_id}.docx"
-        output_path = os.path.join(output_directory, output_filename)
-        doc.save(output_path)
+        # Save to in-memory buffer
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
 
-        if not os.path.exists(output_path):
-            flash("Erro ao salvar o arquivo Word!", "error")
-            return redirect(url_for("main"))
-
-        print(f"Arquivo Word gerado em: {output_path}")
-
-       # Enviar o arquivo para o navegador
-        return send_from_directory(
-            directory=output_directory,
-            filename=output_filename,  # Use 'path' em vez de 'filename' para maior clareza
-            as_attachment=True,    # Força o download
-            attachment_filename=f"Parecer_{item_id}.docx"  # Nome do arquivo no download
+        # Send file directly from memory
+        return send_file(
+            buffer,
+            as_attachment=True,
+            attachment_filename=f"Parecer_{item_id}.docx",  # Troque download_name por attachment_filename
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
     except Exception as e:
-        print(f"Erro ao gerar o arquivo Word: {e}", "error")
+        print("DEBUG: Exception capturada no download:", e)
+        flash(f"Erro ao gerar o arquivo Word: {e}", "error")
         return redirect(url_for("main"))
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
