@@ -223,7 +223,7 @@ def download(item_id):
         return send_file(
             buffer,
             as_attachment=True,
-            attachment_filename=f"Parecer_{item_id}.docx",  # Troque download_name por attachment_filename
+            download_name=f"Parecer_{item_id}.docx",
             mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
