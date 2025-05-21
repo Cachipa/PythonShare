@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Necessário para usar flash messages
 
-# SharePoint credentials
+# SharePoint credentials3
 username = None
 password = None
 
