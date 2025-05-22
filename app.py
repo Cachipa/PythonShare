@@ -61,7 +61,9 @@ def main():
         flash(f"Erro ao acessar a lista do SharePoint: {e}", "error")
         items = []
 
-    return render_template("main.html", items=items, status_filter=status_filter, id_filter=id_filter)
+    # Exemplo no seu route do Flask
+    status_list = ["Aprovado", "Edição", "Invalidado"]
+    return render_template("main.html", items=items, status_list=status_list, status_filter=status_filter, id_filter=id_filter)
 
 
 @app.route("/form", methods=["GET", "POST"])
@@ -142,7 +144,8 @@ def edit(item_id):
             return redirect(url_for("main"))
 
         # Pass the item data to the form
-        return render_template("form.html", item=item[0])
+        status_list = ["Edição", "Aprovado", "Invalidado"]
+        return render_template("form.html", status_list=status_list, item=item[0])
     except Exception as e:
         flash(f"Erro ao acessar ou atualizar o item: {e}", "error")
         return redirect(url_for("main"))

@@ -22,9 +22,9 @@
                 <div class="field">
                     <label for="status">Status:</label>
                     <select id="status" name="status" required>
-                        <option value="Edição" {% if item and item['Status'] == 'Edição' %}selected{% endif %}>Edição</option>
-                        <option value="Aprovado" {% if item and item['Status'] == 'Aprovado' %}selected{% endif %}>Aprovado</option>
-                        <option value="Invalidado" {% if item and item['Status'] == 'Invalidado' %}selected{% endif %}>Invalidado</option>
+                        {% for status in status_list %}
+                            <option value="{{ status }}" {% if item and item['Status'] == status %}selected{% endif %}>{{ status }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="field">
