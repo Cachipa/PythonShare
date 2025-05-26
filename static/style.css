@@ -1,6 +1,9 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #1a1a1a;
+    background: url("images/bgFloresta.jpg") no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
     color: white;
     margin: 0;
     padding: 0;
