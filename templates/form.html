@@ -76,7 +76,78 @@
                 </div>
             </div>
             <h3>2. IDENTIFICAÇÃO DO PROPRIETÁRIO DO IMÓVEL</h3>
+            <h3>4. INTERVENÇÃO AMBIENTAL REQUERIDA</h3>
+            <div id="dynamic-fields-container">
+                {% if linhas_json %}
+                    {% for linha in linhas_json %}
+                    <div class="dynamic-row">
+                        <div class="field" style="width:100%;">
+                            <label>Tipo de Intervenção:</label>
+                            <input type="text" name="tipo_intervencao[]" placeholder="Tipo de Intervenção" value="{{ linha.tipo_intervencao }}" required>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="field" style="flex:1;">
+                                <label>Quantidade:</label>
+                                <input type="text" name="quantidade[]" placeholder="Quantidade" value="{{ linha.quantidade }}" required>
+                            </div>
+                            <div class="field" style="flex:1;">
+                                <label>Unidade:</label>
+                                <input type="text" name="unidade[]" placeholder="Unidade" value="{{ linha.unidade }}" required>
+                            </div>
+                        </div>
+                        <button type="button" onclick="removeRow(this)">Remover</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="dynamic-row">
+                        <div class="field" style="width:100%;">
+                            <label>Tipo de Intervenção:</label>
+                            <input type="text" name="tipo_intervencao[]" placeholder="Tipo de Intervenção" required>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="field" style="flex:1;">
+                                <label>Quantidade:</label>
+                                <input type="text" name="quantidade[]" placeholder="Quantidade" required>
+                            </div>
+                            <div class="field" style="flex:1;">
+                                <label>Unidade:</label>
+                                <input type="text" name="unidade[]" placeholder="Unidade" required>
+                            </div>
+                        </div>
+                        <button type="button" onclick="removeRow(this)">Remover</button>
+                    </div>
+                {% endif %}
+            </div>
+            <button type="button" onclick="addRow()">Adicionar Linha</button>
         </form>
     </div>
 </body>
 </html>
+<script>
+function addRow() {
+    const container = document.getElementById('dynamic-fields-container');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <div class="field" style="width:100%;">
+            <label>Tipo de Intervenção:</label>
+            <input type="text" name="tipo_intervencao[]" placeholder="Tipo de Intervenção" required>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <div class="field" style="flex:1;">
+                <label>Quantidade:</label>
+                <input type="text" name="quantidade[]" placeholder="Quantidade" required>
+            </div>
+            <div class="field" style="flex:1;">
+                <label>Unidade:</label>
+                <input type="text" name="unidade[]" placeholder="Unidade" required>
+            </div>
+        </div>
+        <button type="button" onclick="removeRow(this)">Remover</button>
+    `;
+    container.appendChild(row);
+}
+function removeRow(btn) {
+    btn.parentElement.remove();
+}
+</script>

@@ -4,6 +4,7 @@ from shareplum import Office365
 from docx import Document
 from io import BytesIO
 import os
+import json
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Necessário para usar flash messages
@@ -62,12 +63,14 @@ def main():
         items = []
 
     # Exemplo no seu route do Flask
-    status_list = ["Aprovado", "Edição", "Invalidado"]
+    status_list = ["Edição", "Aprovado", "Invalidado"] 
     return render_template("main.html", items=items, status_list=status_list, status_filter=status_filter, id_filter=id_filter)
 
 
 @app.route("/form", methods=["GET", "POST"])
 def form():
+    linhas_json = []
+    status_list = ["Edição", "Aprovado", "Invalidado"]  # Adicione esta linha
     if request.method == "POST":
         # Get form data
         form_data = {
@@ -82,6 +85,19 @@ def form():
             'CEP': request.form.get("cep"),
             'Telefone': request.form.get("telefone"),
         }
+
+        # Processa campos dinâmicos
+        tipo_intervencao_list = request.form.getlist('tipo_intervencao[]')
+        quantidade_list = request.form.getlist('quantidade[]')
+        unidade_list = request.form.getlist('unidade[]')
+        linhas = []
+        for tipo, qtd, un in zip(tipo_intervencao_list, quantidade_list, unidade_list):
+            linhas.append({
+                'tipo_intervencao': tipo,
+                'quantidade': qtd,
+                'unidade': un
+            })
+        form_data['JSON'] = json.dumps(linhas, ensure_ascii=False)
 
         # Check for required fields
         if not form_data['Status'] or not form_data['Numero SEI']:
@@ -100,7 +116,16 @@ def form():
         except Exception as e:
             flash(f"Erro ao inserir item: {e}", "error")
 
-    return render_template("form.html")
+        return redirect(url_for("form"))
+
+    # Se for GET e estiver editando, carrega o JSON existente
+    item = None # ou busque o item do SharePoint se necessário
+    if item and item.get('JSON'):
+        try:
+            linhas_json = json.loads(item['JSON'])
+        except Exception:
+            linhas_json = []
+    return render_template("form.html", item=item, status_list=status_list, linhas_json=linhas_json)
 
 
 @app.route("/edit/<item_id>", methods=["GET", "POST"])
@@ -116,7 +141,7 @@ def edit(item_id):
         if request.method == "POST":
             # Get updated form data
             form_data = {
-                'ID': item_id,  # Ensure the ID is included for updating the item
+                'ID': item_id,
                 'Status': request.form.get("status"),
                 'Numero SEI': request.form.get("numero_sei"),
                 'Nome': request.form.get("nome"),
@@ -128,6 +153,18 @@ def edit(item_id):
                 'CEP': request.form.get("cep"),
                 'Telefone': request.form.get("telefone"),
             }
+            # Processa campos dinâmicos
+            tipo_intervencao_list = request.form.getlist('tipo_intervencao[]')
+            quantidade_list = request.form.getlist('quantidade[]')
+            unidade_list = request.form.getlist('unidade[]')
+            linhas = []
+            for tipo, qtd, un in zip(tipo_intervencao_list, quantidade_list, unidade_list):
+                linhas.append({
+                    'tipo_intervencao': tipo,
+                    'quantidade': qtd,
+                    'unidade': un
+                })
+            form_data['JSON'] = json.dumps(linhas, ensure_ascii=False)
 
             # Update the existing item
             sp_list.UpdateListItems(data=[form_data], kind='Update')
@@ -136,16 +173,24 @@ def edit(item_id):
 
         # Fetch the item data for pre-filling the form
         item = sp_list.GetListItems(
-            fields=['ID', 'Status', 'Numero SEI', 'Nome', 'Endereço', 'CPF/CNPJ', 'Endereço Numero', 'Bairro', 'UF', 'CEP', 'Telefone'],
-            query={'Where': [('Eq', 'ID', item_id)]}  # Use o filtro correto para o campo ID
+            fields=['ID', 'Status', 'Numero SEI', 'Nome', 'Endereço', 'CPF/CNPJ', 'Endereço Numero', 'Bairro', 'UF', 'CEP', 'Telefone', 'JSON'],
+            query={'Where': [('Eq', 'ID', item_id)]}
         )
         if not item:
             flash("Item não encontrado!", "error")
             return redirect(url_for("main"))
 
-        # Pass the item data to the form
+        item = item[0]
+        # Carregar o JSON para os campos dinâmicos
+        linhas_json = []
+        if item.get('JSON'):
+            try:
+                linhas_json = json.loads(item['JSON'])
+            except Exception:
+                linhas_json = []
+
         status_list = ["Edição", "Aprovado", "Invalidado"]
-        return render_template("form.html", status_list=status_list, item=item[0])
+        return render_template("form.html", status_list=status_list, item=item, linhas_json=linhas_json)
     except Exception as e:
         flash(f"Erro ao acessar ou atualizar o item: {e}", "error")
         return redirect(url_for("main"))
