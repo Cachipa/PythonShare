@@ -208,7 +208,7 @@ def download(item_id):
 
         # Fetch the item data
         item = sp_list.GetListItems(
-            fields=['Nome', 'Endereço', 'Telefone'],
+            fields=['Nome', 'Endereço', 'Telefone', 'JSON'],
             query={'Where': [('Eq', 'ID', item_id)]}
         )
         if not item:
@@ -226,6 +226,31 @@ def download(item_id):
             return redirect(url_for("main"))
 
         print(f"DEBUG: Template encontrado em {template_path}")
+        doc = Document(template_path)
+
+        # --- ADICIONAR O JSON NA TABELA EXISTENTE ---
+        if item.get("JSON"):
+            try:
+                dados_tabela = json.loads(item["JSON"])
+                # Supondo que o JSON é uma lista de dicts com as chaves: tipo_intervencao, quantidade, unidade
+                table = doc.tables[0]  # Use o índice correto da tabela desejada
+                row_index = 18  # Índice da linha onde começa a inserir (ajuste conforme seu modelo)
+                for i, linha in enumerate(dados_tabela):
+                    new_row = table.add_row()
+                    # Mover a nova linha para logo após a linha desejada
+                    table._tbl.remove(new_row._tr)
+                    table._tbl.insert(row_index + 2 + i, new_row._tr)
+                    # Preencher as células (ajuste os índices conforme sua tabela)
+                    new_row.cells[0].text = linha.get("tipo_intervencao", "")
+                    new_row.cells[3].text = linha.get("quantidade", "")
+                    new_row.cells[8].text = linha.get("unidade", "")
+                    # Mesclar células conforme seu padrão
+                    new_row.cells[0].merge(new_row.cells[2])
+                    new_row.cells[3].merge(new_row.cells[7])
+                    new_row.cells[8].merge(new_row.cells[12])
+            except Exception as e:
+                doc.add_paragraph("Erro ao processar dados de intervenção ambiental.")
+
 
         # Função para substituir texto em parágrafos e células de tabelas
         def replace_text_in_paragraphs(paragraphs, replacements):
@@ -247,9 +272,6 @@ def download(item_id):
             "{{Endereço}}": item.get("Endereço", ""),
             "{{Telefone}}": item.get("Telefone", "")
         }
-
-        # Carregar o template Word em um objeto Document
-        doc = Document(template_path)
 
         # Substituir texto nos parágrafos do corpo do documento
         replace_text_in_paragraphs(doc.paragraphs, replacements)
