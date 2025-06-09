@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <!-- Importa o CSS exclusivo para a página de login -->
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
     <div class="container login-container">
         <h1>Login</h1>
+        <!-- Formulário de login, envia email e senha via POST -->
         <form method="POST">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>

@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Principal</title>
+    <!-- Importa o CSS principal -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Base de Dados</h1>
 
-        <!-- Botão para ir ao formulário -->
+        <!-- Botão para ir ao formulário de cadastro de novo item -->
         <div class="form-button">
             <button onclick="window.location.href='{{ url_for('form') }}'" class="submit-button">Ir para o Formulário</button>
         </div>
@@ -18,6 +19,7 @@
         <!-- Formulário de Filtros -->
         <form method="POST" action="{{ url_for('main') }}" class="filter-form">
             <div class="row">
+                <!-- Filtro por status -->
                 <div class="field">
                     <label for="status_filter">Filtrar por Status:</label>
                     <select name="status_filter" id="status_filter">
@@ -28,11 +30,13 @@
                     </select>
                 </div>
 
+                <!-- Filtro por ID -->
                 <div class="field">
                     <label for="id_filter">Filtrar por ID:</label>
                     <input type="text" name="id_filter" id="id_filter" value="{{ id_filter or '' }}">
                 </div>
 
+                <!-- Botão de filtro -->
                 <div class="field" id="BotaoFiltro">
                     <label></label>
                     <button type="submit" class="btn">Filtrar</button>
@@ -53,6 +57,7 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Lista todos os itens retornados do SharePoint -->
                 {% for item in items %}
                 <tr>
                     <td>{{ item['ID'] }}</td>
@@ -61,7 +66,9 @@
                     <td>{{ item['Created By'] }}</td>
                     <td>{{ item['Created'] }}</td>
                     <td>
+                        <!-- Botão para editar o item -->
                         <button onclick="window.location.href='{{ url_for('edit', item_id=item['ID']) }}'" class="btn">Editar</button>
+                        <!-- Botão para download só aparece se o item está aprovado -->
                         {% if item['Status'] == 'Aprovado' %}
                         <button onclick="window.location.href='{{ url_for('download', item_id=item['ID']) }}'" class="btn">Download</button>
                         {% endif %}

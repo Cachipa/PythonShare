@@ -6,14 +6,15 @@ from io import BytesIO
 import os
 import json
 
+# Inicializa a aplicação Flask
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Necessário para usar flash messages
+app.secret_key = "your_secret_key"  # Chave secreta para mensagens flash
 
-# SharePoint credentials3
+# Variáveis globais para armazenar as credenciais do SharePoint
 username = None
 password = None
 
-
+# Rota de login, responsável por autenticar o usuário no SharePoint
 @app.route("/", methods=["GET", "POST"])
 def login():
     global username, password
@@ -21,12 +22,13 @@ def login():
         username = request.form.get("email")
         password = request.form.get("password")
 
+        # Verifica se os campos foram preenchidos
         if not username or not password:
             flash("Email e senha não podem estar vazios!", "error")
             return redirect(url_for("login"))
 
         try:
-            # Attempt to authenticate with SharePoint
+            # Tenta autenticar no SharePoint
             Office365('https://meioambientemg.sharepoint.com', username=username, password=password).GetCookies()
             flash("Login bem-sucedido!", "success")
             return redirect(url_for("main"))
@@ -34,45 +36,47 @@ def login():
             flash(f"Erro no login: {e}", "error")
             return redirect(url_for("login"))
 
+    # Renderiza a página de login
     return render_template("login.html")
 
-
+# Rota principal, exibe a lista de itens do SharePoint com filtros opcionais
 @app.route("/main", methods=["GET", "POST"])
 def main():
     try:
-        # Authenticate and connect to SharePoint
+        # Autentica e conecta ao SharePoint
         authcookie = Office365('https://meioambientemg.sharepoint.com', username=username, password=password).GetCookies()
         site = Site('https://meioambientemg.sharepoint.com/sites/BasedeDados', authcookie=authcookie)
         sp_list = site.List('Base de Dados')
 
-        # Inicializar filtros
+        # Inicializa filtros de busca
         status_filter = request.form.get("status_filter") if request.method == "POST" else None
         id_filter = request.form.get("id_filter") if request.method == "POST" else None
 
-        # Construir a query com base nos filtros
+        # Monta a query de busca conforme os filtros
         query = {}
         if status_filter:
             query.setdefault('Where', []).append(('Eq', 'Status', status_filter))
         if id_filter:
             query.setdefault('Where', []).append(('Eq', 'ID', id_filter))
 
-        # Buscar itens com base na query
+        # Busca os itens no SharePoint
         items = sp_list.GetListItems(query=query) if query else sp_list.GetListItems()
     except Exception as e:
         flash(f"Erro ao acessar a lista do SharePoint: {e}", "error")
         items = []
 
-    # Exemplo no seu route do Flask
+    # Lista de status para o filtro
     status_list = ["Edição", "Aprovado", "Invalidado"] 
+    # Renderiza a página principal com os itens e filtros
     return render_template("main.html", items=items, status_list=status_list, status_filter=status_filter, id_filter=id_filter)
 
-
+# Rota para criar um novo item no SharePoint (formulário)
 @app.route("/form", methods=["GET", "POST"])
 def form():
     linhas_json = []
-    status_list = ["Edição", "Aprovado", "Invalidado"]  # Adicione esta linha
+    status_list = ["Edição", "Aprovado", "Invalidado"]  # Lista de status para o select
     if request.method == "POST":
-        # Get form data
+        # Coleta os dados do formulário
         form_data = {
             'Status': request.form.get("status"),
             'Numero SEI': request.form.get("numero_sei"),
@@ -86,7 +90,7 @@ def form():
             'Telefone': request.form.get("telefone"),
         }
 
-        # Processa campos dinâmicos
+        # Processa os campos dinâmicos do formulário (intervenções ambientais)
         tipo_intervencao_list = request.form.getlist('tipo_intervencao[]')
         quantidade_list = request.form.getlist('quantidade[]')
         unidade_list = request.form.getlist('unidade[]')
@@ -99,18 +103,18 @@ def form():
             })
         form_data['JSON'] = json.dumps(linhas, ensure_ascii=False)
 
-        # Check for required fields
+        # Validação dos campos obrigatórios
         if not form_data['Status'] or not form_data['Numero SEI']:
             flash("Os campos 'Status' e 'Número SEI' são obrigatórios!", "error")
             return redirect(url_for("form"))
 
         try:
-            # Authenticate and connect to SharePoint
+            # Autentica e conecta ao SharePoint
             authcookie = Office365('https://meioambientemg.sharepoint.com', username=username, password=password).GetCookies()
             site = Site('https://meioambientemg.sharepoint.com/sites/BasedeDados', authcookie=authcookie)
             sp_list = site.List('Base de Dados')
 
-            # Insert the new item
+            # Insere o novo item no SharePoint
             sp_list.UpdateListItems(data=[form_data], kind='New')
             flash("Item inserido com sucesso no SharePoint!", "success")
         except Exception as e:
@@ -118,20 +122,21 @@ def form():
 
         return redirect(url_for("form"))
 
-    # Se for GET e estiver editando, carrega o JSON existente
+    # Se for GET, pode carregar um item existente para edição (não implementado aqui)
     item = None # ou busque o item do SharePoint se necessário
     if item and item.get('JSON'):
         try:
             linhas_json = json.loads(item['JSON'])
         except Exception:
             linhas_json = []
+    # Renderiza o formulário
     return render_template("form.html", item=item, status_list=status_list, linhas_json=linhas_json)
 
-
+# Rota para editar um item existente do SharePoint
 @app.route("/edit/<item_id>", methods=["GET", "POST"])
 def edit(item_id):
     try:
-        # Authenticate and connect to SharePoint
+        # Autentica e conecta ao SharePoint
         authcookie = Office365('https://meioambientemg.sharepoint.com', username=username, password=password).GetCookies()
         site = Site('https://meioambientemg.sharepoint.com/sites/BasedeDados', authcookie=authcookie)
         sp_list = site.List('Base de Dados')
@@ -139,7 +144,7 @@ def edit(item_id):
         print(f"Editando item com ID: {item_id}")
 
         if request.method == "POST":
-            # Get updated form data
+            # Coleta os dados atualizados do formulário
             form_data = {
                 'ID': item_id,
                 'Status': request.form.get("status"),
@@ -153,7 +158,7 @@ def edit(item_id):
                 'CEP': request.form.get("cep"),
                 'Telefone': request.form.get("telefone"),
             }
-            # Processa campos dinâmicos
+            # Processa os campos dinâmicos do formulário
             tipo_intervencao_list = request.form.getlist('tipo_intervencao[]')
             quantidade_list = request.form.getlist('quantidade[]')
             unidade_list = request.form.getlist('unidade[]')
@@ -166,12 +171,12 @@ def edit(item_id):
                 })
             form_data['JSON'] = json.dumps(linhas, ensure_ascii=False)
 
-            # Update the existing item
+            # Atualiza o item existente no SharePoint
             sp_list.UpdateListItems(data=[form_data], kind='Update')
             flash("Item atualizado com sucesso no SharePoint!", "success")
             return redirect(url_for("main"))
 
-        # Fetch the item data for pre-filling the form
+        # Busca o item para preencher o formulário de edição
         item = sp_list.GetListItems(
             fields=['ID', 'Status', 'Numero SEI', 'Nome', 'Endereço', 'CPF/CNPJ', 'Endereço Numero', 'Bairro', 'UF', 'CEP', 'Telefone', 'JSON'],
             query={'Where': [('Eq', 'ID', item_id)]}
@@ -181,7 +186,7 @@ def edit(item_id):
             return redirect(url_for("main"))
 
         item = item[0]
-        # Carregar o JSON para os campos dinâmicos
+        # Carrega o JSON para os campos dinâmicos
         linhas_json = []
         if item.get('JSON'):
             try:
@@ -190,23 +195,24 @@ def edit(item_id):
                 linhas_json = []
 
         status_list = ["Edição", "Aprovado", "Invalidado"]
+        # Renderiza o formulário de edição
         return render_template("form.html", status_list=status_list, item=item, linhas_json=linhas_json)
     except Exception as e:
         flash(f"Erro ao acessar ou atualizar o item: {e}", "error")
         return redirect(url_for("main"))
 
-
+# Rota para gerar e baixar um documento Word preenchido com os dados do item selecionado
 @app.route("/download/<item_id>", methods=["GET"])
 def download(item_id):
     try:
-        # Authenticate and connect to SharePoint
+        # Autentica e conecta ao SharePoint
         authcookie = Office365('https://meioambientemg.sharepoint.com', username=username, password=password).GetCookies()
         site = Site('https://meioambientemg.sharepoint.com/sites/BasedeDados', authcookie=authcookie)
         sp_list = site.List('Base de Dados')
 
         print(f"Gerando download para o item com ID: {item_id}")
 
-        # Fetch the item data
+        # Busca os dados do item
         item = sp_list.GetListItems(
             fields=['Nome', 'Endereço', 'Telefone', 'JSON'],
             query={'Where': [('Eq', 'ID', item_id)]}
@@ -218,7 +224,7 @@ def download(item_id):
 
         item = item[0]
 
-        # Load the Word template
+        # Carrega o template Word
         template_path = os.path.join(os.path.dirname(__file__), "2Modelo Parecer (Fabio) 2.docx")
         if not os.path.exists(template_path):
             print(f"DEBUG: Template não encontrado em {template_path}")
@@ -228,29 +234,28 @@ def download(item_id):
         print(f"DEBUG: Template encontrado em {template_path}")
         doc = Document(template_path)
 
-        # --- ADICIONAR O JSON NA TABELA EXISTENTE ---
+        # Adiciona os dados do JSON na tabela existente do documento Word
         if item.get("JSON"):
             try:
                 dados_tabela = json.loads(item["JSON"])
                 # Supondo que o JSON é uma lista de dicts com as chaves: tipo_intervencao, quantidade, unidade
-                table = doc.tables[0]  # Use o índice correto da tabela desejada
+                table = doc.tables[0]  # O documento é inteiramente uma unica tabela
                 row_index = 18  # Índice da linha onde começa a inserir (ajuste conforme seu modelo)
                 for i, linha in enumerate(dados_tabela):
                     new_row = table.add_row()
-                    # Mover a nova linha para logo após a linha desejada
+                    # Move a nova linha para logo após a linha desejada
                     table._tbl.remove(new_row._tr)
                     table._tbl.insert(row_index + 2 + i, new_row._tr)
-                    # Preencher as células (ajuste os índices conforme sua tabela)
+                    # Preenche as células (ajuste os índices conforme sua tabela)
                     new_row.cells[0].text = linha.get("tipo_intervencao", "")
                     new_row.cells[3].text = linha.get("quantidade", "")
                     new_row.cells[8].text = linha.get("unidade", "")
-                    # Mesclar células conforme seu padrão
+                    # Mescla células porque quando a linha é adicionada ela vem com 12 colunas.
                     new_row.cells[0].merge(new_row.cells[2])
                     new_row.cells[3].merge(new_row.cells[7])
                     new_row.cells[8].merge(new_row.cells[12])
             except Exception as e:
                 doc.add_paragraph("Erro ao processar dados de intervenção ambiental.")
-
 
         # Função para substituir texto em parágrafos e células de tabelas
         def replace_text_in_paragraphs(paragraphs, replacements):
@@ -266,30 +271,29 @@ def download(item_id):
                     for cell in row.cells:
                         replace_text_in_paragraphs(cell.paragraphs, replacements)
 
-        # Substituições a serem feitas
+        # Dicionário de substituições para os campos do documento
         replacements = {
             "{{Nome}}": item.get("Nome", ""),
             "{{Endereço}}": item.get("Endereço", ""),
             "{{Telefone}}": item.get("Telefone", "")
         }
 
-        # Substituir texto nos parágrafos do corpo do documento
+        # Substitui os campos nos parágrafos do corpo do documento
         replace_text_in_paragraphs(doc.paragraphs, replacements)
 
-        # Substituir texto nas tabelas
+        # Substitui os campos nas tabelas
         replace_text_in_tables(doc.tables, replacements)
 
-        # Substituir texto nos cabeçalhos e rodapés
+        # Substitui os campos nos cabeçalhos e rodapés
         for section in doc.sections:
             replace_text_in_paragraphs(section.header.paragraphs, replacements)
             replace_text_in_paragraphs(section.footer.paragraphs, replacements)
 
-        # Save to in-memory buffer
+        # Salva o documento em memória e envia para download
         buffer = BytesIO()
         doc.save(buffer)
         buffer.seek(0)
 
-        # Send file directly from memory
         return send_file(
             buffer,
             as_attachment=True,
@@ -302,6 +306,6 @@ def download(item_id):
         flash(f"Erro ao gerar o arquivo Word: {e}", "error")
         return redirect(url_for("main"))
 
-
+# Inicia a aplicação Flask (lembrar de retirar o debug=True em produção)
 if __name__ == "__main__":
     app.run(debug=True)

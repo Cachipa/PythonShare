@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulário</title>
+    <!-- Importa o CSS principal -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <!-- Botões fixos no topo com título -->
+        <!-- Barra superior fixa com botão de voltar, título e botão de envio -->
         <div class="top-buttons">
+            <!-- Botão para voltar à página principal -->
             <button class="back-button" onclick="window.location.href='{{ url_for('main') }}'">Voltar</button>
             <h1>Formulário</h1>
+            <!-- Botão de envio só aparece se o item não está aprovado -->
             {% if not item or item['Status'] != 'Aprovado' %}
             <button class="submit-button" form="formulario" type="submit">Enviar</button>
             {% endif %}
         </div>
 
+        <!-- Início do formulário principal -->
         <form id="formulario" method="POST">
+            <!-- Linha com campo de seleção de status e campo para número SEI -->
             <div class="row">
                 <div class="field">
                     <label for="status">Status:</label>
                     <select id="status" name="status" required>
+                        <!-- Preenche as opções do select com a lista de status -->
                         {% for status in status_list %}
                             <option value="{{ status }}" {% if item and item['Status'] == status %}selected{% endif %}>{{ status }}</option>
                         {% endfor %}
@@ -32,6 +38,8 @@
                     <input type="text" id="numero_sei" name="numero_sei" value="{{ item['Numero SEI'] if item else '' }}" required>
                 </div>
             </div>
+
+            <!-- Seção 1: Identificação do responsável -->
             <h3>1. IDENTIFICAÇÃO DO RESPONSÁVEL PELA INTERVENÇÃO AMBIENTAL</h3>
             <div class="row">
                 <div class="field">
@@ -75,9 +83,14 @@
                     <input type="text" id="telefone" name="telefone" value="{{ item['Telefone'] if item else '' }}" required>
                 </div>
             </div>
+
+            <!-- Seção 2: Identificação do proprietário -->
             <h3>2. IDENTIFICAÇÃO DO PROPRIETÁRIO DO IMÓVEL</h3>
+
+            <!-- Seção 4: Intervenção ambiental requerida -->
             <h3>4. INTERVENÇÃO AMBIENTAL REQUERIDA</h3>
             <div id="dynamic-fields-container">
+                <!-- Se já existem linhas no JSON, exibe cada linha preenchida -->
                 {% if linhas_json %}
                     {% for linha in linhas_json %}
                     <div class="dynamic-row">
@@ -99,6 +112,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
+                    <!-- Se não há linhas, exibe uma linha vazia para preenchimento -->
                     <div class="dynamic-row">
                         <div class="field" style="width:100%;">
                             <label>Tipo de Intervenção:</label>
@@ -118,11 +132,14 @@
                     </div>
                 {% endif %}
             </div>
+            <!-- Botão para adicionar novas linhas dinâmicas -->
             <button type="button" onclick="addRow()">Adicionar Linha</button>
         </form>
     </div>
 </body>
 </html>
+
+<!-- Script para adicionar/remover linhas dinâmicas de intervenção ambiental -->
 <script>
 function addRow() {
     const container = document.getElementById('dynamic-fields-container');
